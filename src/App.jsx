@@ -3,7 +3,7 @@ import { useState, useMemo } from "react";
 const MESES = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic","Ene'27"];
 const MES_VOL_HASTA = 1;
 const MES_OBL_DESDE = 2;
-const MES_ACTIVO = 5;
+const MES_ACTIVO = 6; // Junio 2026 = primer mes no vencido, obligatorios vencidos: Mar,Abr,May,Jun = índices 2,3,4,5
 
 const raw = [
   {p:"6",  n:"MARCO CERDA",                              rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
@@ -15,7 +15,7 @@ const raw = [
   {p:"16", n:"LUIS ALBERTO ZUÑIGA DINAMARCA",            rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"17", n:"CLAUDIA ALEJANDRA ROJAS ORDENES",          rifa:10000, pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"18", n:"CRISTIAN ANDRES ENCINA VARGAS",            rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
-  {p:"19", n:"CESAR HUGO AEDO VISCARRA",                 rifa:10000, pagos:[0,10000,0,0,0,0,0,0,0,0,0,0,0]},
+  {p:"19", n:"CESAR HUGO AEDO VISCARRA",                 rifa:10000, pagos:[0,10000,3000,3000,3000,3000,3000,0,0,0,0,0,0]},
   {p:"20A",n:"PATRICIO HERMINIO CARTES LARA",            rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"20B",n:"MARIA JESUS MENESES VALDES",               rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"21A",n:"JULIO ELADIO MATURANA GODOY",              rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
@@ -27,15 +27,15 @@ const raw = [
   {p:"26", n:"ROBERTO ALEJANDRO VASQUEZ VERDUGO",        rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"27", n:"JUAN ALBERTO DIAZ ALCAPIO",                rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"28", n:"GINETTE MIGUELINA GUIÑEZ JAQUE",           rifa:10000, pagos:[0,0,3000,3000,0,0,0,0,0,0,0,0,0]},
-  {p:"29", n:"ROSA YOLANDA DEL CARMEN PEREZ MONDACA",    rifa:10000, pagos:[0,0,0,5000,0,0,0,0,0,0,0,0,0]},
-  {p:"30", n:"LORENA VIRGINIA LOZA DE SAN MARTIN",       rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
+  {p:"29", n:"ROSA YOLANDA DEL CARMEN PEREZ MONDACA",    rifa:10000, pagos:[0,0,3000,3000,3000,3000,3000,0,0,0,0,0,0]},
+  {p:"30", n:"LORENA VIRGINIA LOZA DE SAN MARTIN",       rifa:0,     pagos:[0,0,3000,3000,3000,0,0,0,0,0,0,0,0]},
   {p:"31", n:"EMILSE PATRICIA JARAMILLO HENAO",          rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"32", n:"MARCELA DE LAS MERCEDES MUÑOZ RAMIREZ",    rifa:10000, pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"33", n:"CARLOS",                                   rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"34", n:"CRISTOPHER ANTONIO ARCO RAIN",             rifa:10000, pagos:[0,0,3000,3000,3000,3000,3000,3000,3000,0,0,0,0]},
   {p:"35", n:"VALESKA FERNANDA ROMERO FERREIRA",         rifa:0,     pagos:[0,0,3000,3000,3000,3000,3000,0,0,0,0,0,0]},
   {p:"36", n:"CRISTIAN MARCELO SALGADO ROJAS",           rifa:10000, pagos:[0,0,3000,3000,4000,0,0,0,0,0,0,0,0]},
-  {p:"37", n:"ROSA YOLANDA DEL CARMEN PEREZ MONDACA",    rifa:10000, pagos:[0,0,0,5000,0,0,0,0,0,0,0,0,0]},
+  {p:"37", n:"ROSA YOLANDA DEL CARMEN PEREZ MONDACA",    rifa:10000, pagos:[0,0,3000,3000,3000,3000,3000,0,0,0,0,0,0]},
   {p:"38", n:"RAMON ENRIQUE SAEZ PULIDO",                rifa:10000, pagos:[0,0,3000,3000,3000,3000,0,0,0,0,0,0,0]},
   {p:"39", n:"PEDRO EMERENCIANO VERGARA ORELLANA",       rifa:0,     pagos:[0,0,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,0]},
   {p:"40", n:"DIEGO ANDRES VALCARCE RIVERA",             rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
@@ -45,7 +45,7 @@ const raw = [
   {p:"44", n:"MARTA IVON VEJAR MELO",                    rifa:0,     pagos:[0,0,3000,3000,3000,0,0,0,0,0,0,0,0]},
   {p:"45", n:"PEDRO RENE COFRE INOSTROZA",               rifa:0,     pagos:[0,0,3000,0,0,0,0,0,0,0,0,0,0]},
   {p:"46", n:"DAVID ALEJANDRO JOFRE JOFRE",              rifa:20000, pagos:[0,20000,15000,15000,15000,0,0,0,0,0,0,0,0]},
-  {p:"47", n:"ANDREINA CHIQUINQUIRA POZO NAVA",          rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
+  {p:"47", n:"ANDREINA CHIQUINQUIRA POZO NAVA",          rifa:0,     pagos:[0,0,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,0]},
   {p:"48", n:"JORGE ARMANDO VERGARA ALARCON",            rifa:0,     pagos:[0,0,10000,0,0,0,0,0,0,0,0,0,0]},
   {p:"49", n:"DANIA MARIA CANALES INZULZA",              rifa:10000, pagos:[0,0,10000,10000,10000,10000,10000,0,0,0,0,0,0]},
   {p:"50", n:"PEDRO RENE COFRE INOSTROZA",               rifa:0,     pagos:[0,0,3000,0,0,0,0,0,0,0,0,0,0]},
@@ -53,7 +53,7 @@ const raw = [
   {p:"52", n:"CARLOS AURELIO FUENZALIDA ALFARO",         rifa:0,     pagos:[0,0,3000,3000,3000,3000,3000,0,0,0,0,0,0]},
   {p:"53", n:"PABLO ANDRES VALENZUELA ESPINOZA",         rifa:10000, pagos:[0,0,5000,3000,3000,3000,0,0,0,0,0,0,0]},
   {p:"54", n:"CHRISTOPHER ALEXIS PARRA ROJAS",           rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
-  {p:"55", n:"ELISABETH CIFUENTES LUNA",                 rifa:10000, pagos:[0,0,3000,3000,3000,0,0,0,0,0,0,0,0]},
+  {p:"55", n:"ELISABETH CIFUENTES LUNA",                 rifa:10000, pagos:[0,0,3000,3000,3000,3000,3000,4000,0,0,0,0,0]},
   {p:"56", n:"FRANCISCO JAVIER TORRECILLA CEREY",        rifa:10000, pagos:[10000,0,3000,3000,3000,3000,0,0,0,0,0,0,0]},
   {p:"57", n:"JESENIA DEL CARMEN BASOALTO BASOALTO",     rifa:10000, pagos:[0,0,4000,2000,3000,0,0,0,0,0,0,0,0]},
   {p:"58", n:"JOSE BENITO HERRERA CASTRO",               rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
@@ -66,13 +66,13 @@ const raw = [
   {p:"63", n:"JENNY DEL PILAR ARZOLA AGUAYO",            rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"64", n:"NATIVIDAD DEL CARMEN ZAMBRANO CARRASCO",   rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"65", n:"MARCOS EUGENIO SEGUEL CHAVEZ",             rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
-  {p:"66", n:"JOSSELIN FABIOLA JORQUERA PARRA",          rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
+  {p:"66", n:"JOSSELIN FABIOLA JORQUERA PARRA",          rifa:0,     pagos:[0,0,3000,3000,3000,0,0,0,0,0,0,0,0]},
   {p:"67A",n:"ANGEL VELASCO GONZALEZ",                   rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"67B",n:"ALVARO DANILO VERGARA ALARCON",            rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"68", n:"LUIS GUILLERMO GUTIERREZ MORALES",         rifa:10000, pagos:[20000,5000,5000,5000,5000,5000,5000,0,0,0,0,0,0]},
   {p:"69", n:"NICOLAS ANTONIO ROJAS VENEGAS",            rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"70", n:"ANDREA DEL CARMEN MUÑOZ ROZAS",            rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
-  {p:"71", n:"ELISABETH CIFUENTES LUNA",                 rifa:0,     pagos:[0,0,3000,3000,3000,0,0,0,0,0,0,0,0]},
+  {p:"71", n:"ELISABETH CIFUENTES LUNA",                 rifa:0,     pagos:[0,0,3000,3000,3000,3000,3000,4000,0,0,0,0,0]},
   {p:"72", n:"JULIA DE LAS MERCEDES BASTIAS GAETE",      rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"73", n:"JULIA DE LAS MERCEDES BASTIAS GAETE",      rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"74", n:"MARIA CUPERTINA ARRIAGADA VALDES",         rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
@@ -87,7 +87,7 @@ const raw = [
   {p:"79B",n:"SOFIA RAQUEL CONDOR GUERE",                rifa:10000, pagos:[0,10000,10000,5000,5000,5000,5000,5000,5000,0,0,0,0]},
   {p:"80", n:"ALEJANDRA ESTER ESPINOSA VEGA",            rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"81", n:"VERONICA ANGELICA ROJAS COFRE",            rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
-  {p:"82", n:"ESTEBAN DAVID MIERES BOBADILLA",           rifa:10000, pagos:[0,0,3000,3000,0,0,0,0,0,0,0,0,0]},
+  {p:"82", n:"ESTEBAN DAVID MIERES BOBADILLA",           rifa:10000, pagos:[0,0,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,0]},
   {p:"83", n:"MARITZA ELIZABETH CEBALLOS SILVA",         rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"84", n:"YONATAN ALEXANDER AGUILAR VALENZUELA",     rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"85", n:"CRISTIAN RODRIGO VARGAS ASENCIO",          rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
@@ -95,9 +95,9 @@ const raw = [
   {p:"87", n:"CARLA ANDREA CEPEDA PINTO",                rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"88", n:"DANIEL ERNESTO ZUÑIGA MORA",               rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"89", n:"HECTOR MAURICIO HORMAZABAL CAMPOS",        rifa:10000, pagos:[0,0,10000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000]},
-  {p:"90A",n:"ANDREA DE LAS MERCEDES LOPEZ VERDUGO",     rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
+  {p:"90A",n:"ANDREA DE LAS MERCEDES LOPEZ VERDUGO",     rifa:0,     pagos:[0,0,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,0]},
   {p:"90B",n:"ERNESTO ALFONSO VASQUEZ IZETA",            rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
-  {p:"91", n:"ERNESTO ALFONSO VASQUEZ IZETA",            rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
+  {p:"91", n:"ERNESTO ALFONSO VASQUEZ IZETA",            rifa:0,     pagos:[0,0,3000,3000,3000,3000,3000,0,0,0,0,0,0]},
   {p:"92", n:"MYRIAM SOLEDAD GUTIERREZ CAMPO",           rifa:0,     pagos:[0,0,5000,0,0,0,0,0,0,0,0,0,0]},
   {p:"93", n:"PEDRO RENE COFRE INOSTROZA",               rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"94", n:"SERGIO ANTONIO OBANDO OBANDO",             rifa:0,     pagos:[0,0,10000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000]},
@@ -127,16 +127,16 @@ const raw = [
   {p:"123",n:"MAURICIO EUGENIO NUÑEZ MORENO",            rifa:0,     pagos:[0,0,3000,3000,3000,3000,0,0,0,0,0,0,0]},
   {p:"125",n:"VICTOR MANUEL BARRIOS CABEZAS",            rifa:0,     pagos:[0,0,3000,3000,3000,3000,3000,0,0,0,0,0,0]},
   {p:"126",n:"MANUEL ANTONIO BECERRA PACHECO",           rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
-  {p:"128",n:"VERONICA DEL CARMEN GONZALEZ FUENTES",     rifa:20000, pagos:[0,5000,15000,5000,0,0,0,0,0,0,0,0,0]},
+  {p:"128",n:"VERONICA DEL CARMEN GONZALEZ FUENTES",     rifa:20000, pagos:[0,5000,15000,5000,3000,3000,4000,0,0,0,0,0,0]},
   {p:"129",n:"JOSE LUIS CAMPAL ANGULO",                  rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"130",n:"LUIS ALBERTO VASQUEZ ALVAREZ",             rifa:10000, pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
-  {p:"131",n:"DANIEL ISRAEL RAMIREZ GOMEZ",              rifa:10000, pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
+  {p:"131",n:"DANIEL ISRAEL RAMIREZ GOMEZ",              rifa:10000, pagos:[0,0,3000,3000,3000,3000,0,0,0,0,0,0,0]},
   {p:"135",n:"CRISTIAN VICENTE MOYA ALMONACID",          rifa:0,     pagos:[0,0,3000,0,0,0,0,0,0,0,0,0,0]},
   {p:"136",n:"SEBASTIAN LISANDRO MOYA ALMONACID",        rifa:0,     pagos:[0,0,3000,0,0,0,0,0,0,0,0,0,0]},
   {p:"137",n:"SEBASTIAN LISANDRO MOYA ALMONACID",        rifa:0,     pagos:[0,0,3000,0,0,0,0,0,0,0,0,0,0]},
   {p:"138",n:"CRISTIAN VICENTE MOYA ALMONACID",          rifa:0,     pagos:[0,0,3000,0,0,0,0,0,0,0,0,0,0]},
   {p:"139",n:"FRANCISCO JAVIER VILLAGRA SILVA",          rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
-  {p:"140",n:"RUBEN ALEJANDRO CARCAMO RIQUELME",         rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
+  {p:"140",n:"RUBEN ALEJANDRO CARCAMO RIQUELME",         rifa:0,     pagos:[0,0,3000,3000,3000,0,0,0,0,0,0,0,0]},
   {p:"141",n:"RODRIGO ALONSO SALCEDO FERNANDEZ",         rifa:0,     pagos:[0,0,3000,3000,4000,0,0,0,0,0,0,0,0]},
   {p:"142",n:"CARMEN DORIS CACERES NUÑEZ",               rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"143",n:"SOLANGE ANAMOUR BARRA NUÑEZ",              rifa:0,     pagos:[0,0,3000,3000,3000,3000,3000,3000,3000,0,0,0,0]},
@@ -162,10 +162,10 @@ const raw = [
   {p:"189",n:"LUZ ELENA CANALES ARGEL",                  rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"190",n:"CLAUDIO ARIEL VALENCIA DIAZ",              rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"191",n:"ALFREDO ERNESTO POBLETE TAPIA",            rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
-  {p:"193",n:"MANUEL EDUARDO FARIAS ARELLANO",           rifa:10000, pagos:[0,0,0,10000,0,0,0,0,0,0,0,0,0]},
+  {p:"193",n:"MANUEL EDUARDO FARIAS ARELLANO",           rifa:10000, pagos:[0,0,3000,10000,3000,4000,0,0,0,0,0,0,0]},
   {p:"194",n:"MONICA XIMENA VELIZ RUIZ",                 rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"195",n:"MARCO ANTONIO RIVEROS CARREÑO",            rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
-  {p:"196",n:"ROSA DEL CARMEN ROJAS BELTRAN",            rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
+  {p:"196",n:"ROSA DEL CARMEN ROJAS BELTRAN",            rifa:0,     pagos:[0,0,3000,3000,3000,0,0,0,0,0,0,0,0]},
   {p:"197",n:"PEDRO ANTONIO MUÑOZ DIAZ",                 rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"198",n:"CARLOS ENRIQUE VEJAR CALABRANO",           rifa:10000, pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"199",n:"MANUEL ALEJANDRO VEJAR REYES",             rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
@@ -204,8 +204,6 @@ export default function App(){
 
   return(
     <div style={{minHeight:"100vh",background:C.bg,color:C.text,fontFamily:"'Segoe UI',system-ui,sans-serif",maxWidth:480,margin:"0 auto"}}>
-
-      {/* Header */}
       <div style={{background:C.card,borderBottom:`1px solid ${C.border}`,padding:"12px 16px",position:"sticky",top:0,zIndex:10}}>
         <div style={{fontWeight:800,fontSize:16,letterSpacing:.3}}>🏘️ COMUNIDAD LAS NIPAS</div>
         <div style={{fontSize:11,color:C.muted,marginTop:2}}>Control de Aportes 2026–2027</div>
@@ -222,8 +220,6 @@ export default function App(){
       </div>
 
       <div style={{padding:"16px"}}>
-
-        {/* DASHBOARD */}
         {vista==="dashboard"&&(
           <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:12}}>
             <div style={{fontSize:13,color:C.muted,fontWeight:600,textTransform:"uppercase",letterSpacing:.5,alignSelf:"flex-start"}}>Resumen General</div>
@@ -245,20 +241,18 @@ export default function App(){
               </div>
             </div>
             <div style={{fontSize:11,color:C.muted,textAlign:"center",marginTop:4}}>
-              Estado basado en meses obligatorios vencidos (Mar–May 2026)
+              Estado basado en meses obligatorios vencidos (Mar–Jun 2026)
             </div>
           </div>
         )}
 
-        {/* RESIDENTE */}
         {vista==="residente"&&(
           <div style={{display:"flex",flexDirection:"column",gap:14}}>
             <div style={{fontSize:13,color:C.muted,fontWeight:600,textTransform:"uppercase",letterSpacing:.5}}>Consulta tu Parcela</div>
             <div style={card}>
               <div style={{fontSize:13,color:C.muted,marginBottom:10}}>Ingresa el número de tu parcela</div>
               <div style={{display:"flex",gap:8}}>
-                <input
-                  placeholder="Ej: 10, 46, 79B..."
+                <input placeholder="Ej: 10, 46, 79B..."
                   value={parcela}
                   onChange={e=>{setParcela(e.target.value);setError("");setResultado(null);}}
                   onKeyDown={e=>e.key==="Enter"&&buscar()}
@@ -314,15 +308,12 @@ export default function App(){
                         const esPorVencer=i>=MES_ACTIVO;
                         const pagado=pago>0;
                         const pendiente=esOblVenc&&!pagado;
-
                         let bg=C.card2,border=C.border,textCol=C.muted;
                         if(pagado){bg="#064e3b";border=C.green;textCol=C.green;}
                         else if(pendiente){bg="#7f1d1d";border=C.red;textCol="#fca5a5";}
                         else if(esPorVencer){bg="#111827";border="#1f2937";textCol="#374151";}
-
                         return(
-                          <div key={i} style={{borderRadius:12,padding:"10px 6px",textAlign:"center",
-                            background:bg,border:`1px solid ${border}`}}>
+                          <div key={i} style={{borderRadius:12,padding:"10px 6px",textAlign:"center",background:bg,border:`1px solid ${border}`}}>
                             <div style={{fontSize:11,fontWeight:700,color:C.muted,marginBottom:2}}>{mes}</div>
                             {esVol&&<div style={{fontSize:8,color:"#f59e0b",fontWeight:700,marginBottom:3}}>VOLUNTARIO</div>}
                             {esPorVencer&&<div style={{fontSize:8,color:"#1f2937",fontWeight:700,marginBottom:3}}>OBLIGATORIO</div>}
