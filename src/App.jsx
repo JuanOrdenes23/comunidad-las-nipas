@@ -27,7 +27,7 @@ const raw = [
   {p:"26", n:"ROBERTO ALEJANDRO VASQUEZ VERDUGO",        rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"27", n:"JUAN ALBERTO DIAZ ALCAPIO",                rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"28", n:"GINETTE MIGUELINA GUIÑEZ JAQUE",           rifa:10000, pagos:[0,0,3000,3000,0,0,0,0,0,0,0,0,0]},
-  {p:"29", n:"ROSA YOLANDA DEL CARMEN PEREZ MONDACA",    rifa:10000, pagos:[0,0,0,5000,0,0,0,0,0,0,0,0,0]},
+  {p:"29", n:"ROSA YOLANDA DEL CARMEN PEREZ MONDACA",    rifa:10000, pagos:[0,0,3000,3000,3000,3000,3000,3000,3000,4000,0,0,0]},
   {p:"30", n:"LORENA VIRGINIA LOZA DE SAN MARTIN",       rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"31", n:"EMILSE PATRICIA JARAMILLO HENAO",          rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"32", n:"MARCELA DE LAS MERCEDES MUÑOZ RAMIREZ",    rifa:10000, pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
