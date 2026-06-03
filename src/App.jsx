@@ -69,7 +69,7 @@ const raw = [
   {p:"66", n:"JOSSELIN FABIOLA JORQUERA PARRA",          rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"67A",n:"ANGEL VELASCO GONZALEZ",                   rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"67B",n:"ALVARO DANILO VERGARA ALARCON",            rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
-None  {p:"68",n:"LUIS GUILLERMO GUTIERREZ MORALES",         rifa:10000, pagos:[20000,5000,5000,5000,5000,5000,5000,0,0,0,0,0,0]},
+  {p:"68",n:"LUIS GUILLERMO GUTIERREZ MORALES",         rifa:10000, pagos:[20000,5000,5000,5000,5000,5000,5000,0,0,0,0,0,0]},
   {p:"69", n:"NICOLAS ANTONIO ROJAS VENEGAS",            rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"70", n:"ANDREA DEL CARMEN MUÑOZ ROZAS",            rifa:0,     pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
   {p:"71", n:"ELISABETH CIFUENTES LUNA",                 rifa:0,     pagos:[0,0,3000,3000,3000,0,0,0,0,0,0,0,0]},
