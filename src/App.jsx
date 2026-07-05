@@ -255,7 +255,7 @@ export default function App(){
       <div style={{background:N.bgCard,borderBottom:`2px solid ${N.verde}`,padding:"16px 20px",position:"sticky",top:0,zIndex:10}}>
         <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
           <img
-            src="https://drive.google.com/uc?export=view&id=1ywDUy9G6q4p9cj2Ld2Ps3ueQgnqzrpnz"
+            src="https://i.imgur.com/YmOYHXM.jpeg"
             alt="Logo Comunidad Las Nipas"
             style={{width:48,height:48,borderRadius:12,objectFit:"cover",border:`2px solid ${N.verdeBorde}`}}
             onError={e=>{e.target.style.display="none";e.target.nextSibling.style.display="flex";}}
