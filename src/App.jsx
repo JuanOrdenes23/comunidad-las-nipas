@@ -3,7 +3,19 @@ import { useState, useMemo } from "react";
 const MESES = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic","Ene'27"];
 const MES_VOL_HASTA = 1;
 const MES_OBL_DESDE = 2;
-const MES_ACTIVO = 6;
+
+// Mes activo calculado automáticamente según fecha actual
+// Enero=0, Feb=1, Mar=2 ... Dic=11, y si es 2027 Ene=12
+function calcMesActivo(){
+  const hoy = new Date();
+  const anio = hoy.getFullYear();
+  const mes = hoy.getMonth(); // 0-based
+  if(anio === 2026) return Math.min(mes, 12);
+  if(anio === 2027 && mes === 0) return 12;
+  if(anio > 2027) return 12;
+  return 2; // fallback marzo
+}
+const MES_ACTIVO = calcMesActivo();
 
 const raw = [
   {p:"6",  n:"MARCO CERDA",                              rifa:0,mant:0,      pagos:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
@@ -242,7 +254,13 @@ export default function App(){
       {/* HEADER */}
       <div style={{background:N.bgCard,borderBottom:`2px solid ${N.verde}`,padding:"16px 20px",position:"sticky",top:0,zIndex:10}}>
         <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
-          <div style={{width:44,height:44,borderRadius:12,background:N.verdeBg,border:`2px solid ${N.verdeBorde}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>🌿</div>
+          <img
+            src="https://drive.google.com/uc?export=view&id=1ywDUy9G6q4p9cj2Ld2Ps3ueQgnqzrpnz"
+            alt="Logo Comunidad Las Nipas"
+            style={{width:48,height:48,borderRadius:12,objectFit:"cover",border:`2px solid ${N.verdeBorde}`}}
+            onError={e=>{e.target.style.display="none";e.target.nextSibling.style.display="flex";}}
+          />
+          <div style={{width:48,height:48,borderRadius:12,background:N.verdeBg,border:`2px solid ${N.verdeBorde}`,display:"none",alignItems:"center",justifyContent:"center",fontSize:24}}>🌿</div>
           <div>
             <div style={{fontWeight:800,fontSize:17,letterSpacing:.5,color:N.texto}}>COMUNIDAD LAS NIPAS</div>
             <div style={{fontSize:12,color:N.textoMuted,marginTop:1}}>Control de Aportes 2026 – 2027</div>
@@ -296,7 +314,9 @@ export default function App(){
 
             <div style={{textAlign:"center",fontSize:13,color:N.textoMuted,background:N.bgCard2,borderRadius:10,padding:"10px 14px",border:`1px solid ${N.borde}`}}>
               📅 Estado basado en meses obligatorios vencidos<br/>
-              <strong style={{color:N.verde}}>Marzo — Junio 2026</strong>
+              <strong style={{color:N.verde}}>
+                Marzo — {["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic","Ene"][MES_ACTIVO-1]} {MES_ACTIVO<=12?"2026":"2027"}
+              </strong>
             </div>
           </div>
         )}
@@ -309,9 +329,21 @@ export default function App(){
               Consulta tu Parcela
             </div>
 
+            {/* Bienvenida */}
+            {!resultado&&(
+              <div style={{...cardBase,textAlign:"center",padding:"24px 20px",borderColor:N.verdeBorde,background:N.verdeBg}}>
+                <div style={{fontSize:36,marginBottom:10}}>👋</div>
+                <div style={{fontSize:20,fontWeight:800,color:N.texto,marginBottom:8}}>¡Bienvenido/a!</div>
+                <div style={{fontSize:15,color:N.textoMuted,lineHeight:1.6}}>
+                  Aquí puedes consultar el estado de tus pagos.<br/>
+                  Solo ingresa el <strong style={{color:N.verdeClaro}}>número de tu parcela</strong> y presiona <strong style={{color:N.verdeClaro}}>Ir</strong>.
+                </div>
+              </div>
+            )}
+
             {/* Buscador */}
             <div style={cardBase}>
-              <div style={{fontSize:16,color:N.textoMuted,marginBottom:14,fontWeight:500}}>Ingresa el número de tu parcela</div>
+              <div style={{fontSize:16,color:N.textoMuted,marginBottom:14,fontWeight:500}}>¿Cuál es tu parcela?</div>
               <div style={{display:"flex",gap:10}}>
                 <input
                   placeholder="Ej: 10, 46, 79B..."
@@ -402,7 +434,7 @@ export default function App(){
                             {esVol&&<div style={{fontSize:9,color:N.amarillo,fontWeight:800,marginBottom:4}}>VOLUNTARIO</div>}
                             {esOblVenc&&!pagado&&<div style={{fontSize:9,color:"transparent",marginBottom:4}}>‎</div>}
                             {esOblVenc&&pagado&&<div style={{fontSize:9,color:"transparent",marginBottom:4}}>‎</div>}
-                            {esPorVencer&&<div style={{fontSize:9,color:"#3a5020",fontWeight:800,marginBottom:4}}>OBLIGATORIO</div>}
+                            {                        esPorVencer&&<div style={{fontSize:9,color:"#7a9a55",fontWeight:800,marginBottom:4}}>POR VENCER</div>}
                             {!esVol&&!esPorVencer&&pendiente&&<div style={{fontSize:9,color:"transparent",marginBottom:4}}>‎</div>}
                             <div style={{fontSize:22,margin:"2px 0"}}>
                               {pagado?"✅":pendiente?"❌":esPorVencer?"🕐":"—"}
