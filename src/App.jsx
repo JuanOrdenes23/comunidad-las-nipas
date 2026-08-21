@@ -27,26 +27,26 @@ function parseNum(val){
 
 function parseCsv(text){
   const lines = text.trim().split("\n");
-  const rows = lines.slice(1); // saltar encabezado
+  const rows = lines.slice(1);
   return rows.map(line=>{
     const cols = line.split(",").map(c=>c.replace(/^"|"$/g,"").trim());
     const pagos = [
-      parseNum(cols[4]),  // Ene
-      parseNum(cols[5]),  // Feb
-      parseNum(cols[6]),  // Mar
-      parseNum(cols[7]),  // Abr
-      parseNum(cols[8]),  // May
-      parseNum(cols[9]),  // Jun
-      parseNum(cols[10]), // Jul
-      parseNum(cols[11]), // Ago
-      parseNum(cols[12]), // Sep
-      parseNum(cols[13]), // Oct
-      parseNum(cols[14]), // Nov
-      parseNum(cols[15]), // Dic
-      parseNum(cols[16]), // Ene27
+      parseNum(cols[4]),
+      parseNum(cols[5]),
+      parseNum(cols[6]),
+      parseNum(cols[7]),
+      parseNum(cols[8]),
+      parseNum(cols[9]),
+      parseNum(cols[10]),
+      parseNum(cols[11]),
+      parseNum(cols[12]),
+      parseNum(cols[13]),
+      parseNum(cols[14]),
+      parseNum(cols[15]),
+      parseNum(cols[16]),
     ];
     return {
-      p: cols[0]||"",
+      p: (cols[0]||"").replace(/\s+/g,"").toUpperCase(),
       n: cols[1]||"",
       rifa: parseNum(cols[2]),
       mant: parseNum(cols[3]),
@@ -62,9 +62,8 @@ function getEstado(pagos){
 const N = {
   bgPage:"#1a1f12",bgCard:"#232b18",bgCard2:"#1e2614",bgInput:"#141a0d",
   verde:"#6a9e3f",verdeClaro:"#8bc34a",verdeBg:"#1d2e10",verdeBorde:"#4a7a25",
-  cafe:"#8d6e4a",cafeBg:"#2e1f0f",cafeBorde:"#6b4f2e",
   rojo:"#c0392b",rojoBg:"#2e1010",rojoBorde:"#8b2020",
-  amarillo:"#e6a817",azul:"#4a90c4",azulBg:"#102030",azulBorde:"#2060a0",
+  amarillo:"#e6a817",azulBg:"#102030",azulBorde:"#2060a0",
   texto:"#e8ead4",textoMuted:"#9aaa7a",borde:"#3a4a25",
 };
 
@@ -84,8 +83,7 @@ export default function App(){
         return r.text();
       })
       .then(text=>{
-        const datos = parseCsv(text);
-        setRaw(datos);
+        setRaw(parseCsv(text));
         setCargando(false);
       })
       .catch(()=>{
@@ -102,9 +100,9 @@ export default function App(){
 
   function buscar(){
     setError("");setResultado(null);
-    const q=parcela.trim().toUpperCase();
+    const q=parcela.trim().toUpperCase().replace(/\s+/g,"");
     if(!q){setError("Ingresa el número de tu parcela.");return;}
-    const f=raw.find(r=>r.p.toUpperCase()===q);
+    const f=raw.find(r=>r.p===q);
     if(!f){setError("Parcela no encontrada. Verifica el número.");return;}
     setResultado(f);
   }
@@ -116,9 +114,6 @@ export default function App(){
       <div style={{fontSize:48}}>🌿</div>
       <div style={{fontSize:18,fontWeight:700,color:N.verdeClaro}}>COMUNIDAD LAS NIPAS</div>
       <div style={{fontSize:15,color:N.textoMuted}}>Cargando datos...</div>
-      <div style={{width:48,height:4,background:N.verdeBorde,borderRadius:4,overflow:"hidden"}}>
-        <div style={{width:"100%",height:"100%",background:N.verde,animation:"pulse 1.2s ease-in-out infinite"}}/>
-      </div>
       <style>{`@keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}`}</style>
     </div>
   );
@@ -127,7 +122,7 @@ export default function App(){
     <div style={{minHeight:"100vh",background:N.bgPage,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:12,color:N.texto,fontFamily:"'Segoe UI',sans-serif",padding:24,textAlign:"center"}}>
       <div style={{fontSize:48}}>⚠️</div>
       <div style={{fontSize:16,color:"#ef9a9a"}}>{errorCarga}</div>
-      <button onClick={()=>{setCargando(true);setErrorCarga("");window.location.reload();}} style={{marginTop:8,padding:"12px 24px",background:N.verde,color:"#fff",border:"none",borderRadius:12,fontSize:16,fontWeight:700,cursor:"pointer"}}>
+      <button onClick={()=>window.location.reload()} style={{marginTop:8,padding:"12px 24px",background:N.verde,color:"#fff",border:"none",borderRadius:12,fontSize:16,fontWeight:700,cursor:"pointer"}}>
         Reintentar
       </button>
     </div>
