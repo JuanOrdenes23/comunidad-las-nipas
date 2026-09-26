@@ -25,6 +25,11 @@ function parseNum(val){
   return isNaN(n) ? 0 : n;
 }
 
+function normParcela(val){
+  // Elimina espacios, convierte a mayúsculas y une número+letra: "21 A" → "21A"
+  return (val||"").trim().toUpperCase().replace(/\s+/g,"");
+}
+
 function parseCsv(text){
   const lines = text.trim().split("\n");
   const rows = lines.slice(1);
@@ -40,7 +45,7 @@ function parseCsv(text){
     cols.push(cur.trim());
     const pagos = Array.from({length:13},(_,i)=>parseNum(cols[4+i]||0));
     return {
-      p: (cols[0]||"").replace(/\s+/g,"").toUpperCase(),
+      p: normParcela(cols[0]),
       n: (cols[1]||"").trim(),
       rifa: parseNum(cols[2]),
       mant: parseNum(cols[3]),
@@ -94,7 +99,7 @@ export default function App(){
 
   function buscar(){
     setError(""); setResultado(null);
-    const q = parcela.trim().toUpperCase().replace(/\s+/g,"");
+    const q = normParcela(parcela);
     if(!q){ setError("Ingresa el número de tu parcela."); return; }
     const f = raw.find(r=>r.p===q);
     if(!f){ setError("Parcela no encontrada. Verifica el número."); return; }
