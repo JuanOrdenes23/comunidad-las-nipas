@@ -1,10 +1,11 @@
 import { useState, useMemo, useEffect } from "react";
 
 const SHEET_ID = "1UBjalKNQ1bt_qCiGgQ9BRbs2gtnEYjL-1D--Yicmrdg";
-// Fuente principal: export CSV (no infiere tipos por columna, así las parcelas con letra
-// como "76A" nunca llegan vacías). Respaldo: gviz, por si el export falla.
+// Fuente principal: export CSV de la PRIMERA pestaña (Hoja1). No infiere tipos por columna,
+// así las parcelas con letra como "76A" nunca llegan vacías. Sin "gid": el gid de Hoja1 no es 0
+// y un gid inexistente responde HTTP 400. Respaldo: gviz, por si el export falla.
 const SHEET_URLS = [
-  `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`,
+  `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`,
   `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Hoja1`,
 ];
 
@@ -97,9 +98,13 @@ function idxMes(h){
 function parseCsv(text){
   const filas = splitCsv(text);
   const avisos = [];
-  // El encabezado es la primera fila (de las 5 primeras) que contiene "PARCELA"
-  const hIdx = filas.slice(0,5).findIndex(f=>f.some(c=>normTexto(c).includes("parcela")));
-  if(hIdx < 0) throw new Error("La planilla no tiene la columna PARCELA");
+  // Encabezado: primera fila (de las 5 primeras) con "PARCELA". gviz puede borrar ese texto
+  // (columna numérica), así que se acepta también una fila con "NOMBRE" o con los meses.
+  const primeras = filas.slice(0,5);
+  let hIdx = primeras.findIndex(f=>f.some(c=>normTexto(c).includes("parcela")));
+  if(hIdx < 0) hIdx = primeras.findIndex(f=>f.some(c=>normTexto(c).startsWith("nombre")));
+  if(hIdx < 0) hIdx = primeras.findIndex(f=>f.filter(c=>idxMes(c) >= 0).length >= 12);
+  if(hIdx < 0) throw new Error("No se reconoce el encabezado de la planilla");
   const h = filas[hIdx].map(normTexto);
   const col = (pred, def)=>{ const i = h.findIndex(pred); return i >= 0 ? i : def; };
   const cP = col(c=>c.includes("parcela"), 0);
