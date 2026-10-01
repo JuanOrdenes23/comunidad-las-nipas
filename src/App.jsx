@@ -1,7 +1,12 @@
 import { useState, useMemo, useEffect } from "react";
 
 const SHEET_ID = "1UBjalKNQ1bt_qCiGgQ9BRbs2gtnEYjL-1D--Yicmrdg";
-const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Hoja1`;
+// Fuente principal: export CSV (no infiere tipos por columna, así las parcelas con letra
+// como "76A" nunca llegan vacías). Respaldo: gviz, por si el export falla.
+const SHEET_URLS = [
+  `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`,
+  `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Hoja1`,
+];
 
 const MESES = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic","Ene'27"];
 const MES_VOL_HASTA = 1;
@@ -18,40 +23,149 @@ function calcMesActivo(){
 }
 const MES_ACTIVO = calcMesActivo();
 
+/* ════════════════ Lectura y validación de la planilla ════════════════
+   Reglas para que un cambio en la planilla no rompa la app:
+   - Las columnas se ubican por su ENCABEZADO (PARCELA, NOMBRE, Rifa, Mantención y meses),
+     no por posición: insertar o mover columnas no desordena los datos.
+   - Si no se reconocen los encabezados de meses, se usa la posición histórica (col. E a Q).
+   - Filas con número de parcela inválido o repetido se ignoran y se informan en consola.
+   - Si la fuente principal falla o no trae el encabezado PARCELA, se prueba la siguiente.
+   - Si ninguna responde, se muestran los últimos datos guardados en este dispositivo. */
+
 function parseNum(val){
-  if(!val) return 0;
-  const clean = String(val).replace(/[$\.\s]/g,"").replace(",",".");
-  const n = parseFloat(clean);
-  return isNaN(n) ? 0 : n;
+  if(val === null || val === undefined || val === "") return 0;
+  // Montos en pesos son enteros. Un decimal de 1-2 dígitos ("3000.0") se descarta;
+  // grupos de 3 dígitos tras "." o "," son miles ("$3.000", "3,000").
+  const clean = String(val).trim().replace(/[.,]\d{1,2}$/,"").replace(/[^0-9-]/g,"");
+  const n = parseInt(clean,10);
+  return isNaN(n) || n < 0 ? 0 : n;
 }
 
 function normParcela(val){
-  // Elimina espacios, convierte a mayúsculas y une número+letra: "21 A" → "21A"
-  return (val||"").trim().toUpperCase().replace(/\s+/g,"");
+  // "Parcela 76-b" / " 076 B " / "76.0" → "76B" / "76"
+  const s = String(val||"").trim().toUpperCase().replace(/\.0+$/,"").replace(/[\s\-_.]+/g,"");
+  const m = s.match(/(\d+)([A-Z]?)$/);
+  return m ? String(parseInt(m[1],10)) + m[2] : s;
+}
+
+const PARCELA_VALIDA = /^\d{1,3}[A-Z]?$/;
+
+function normTexto(s){
+  return String(s||"").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+}
+
+// Separa un CSV completo respetando comillas, comillas dobles ("") y saltos de línea internos
+function splitCsv(text){
+  const rows = []; let row = [], cur = "", inQ = false;
+  for(let i = 0; i < text.length; i++){
+    const ch = text[i];
+    if(inQ){
+      if(ch === '"' && text[i+1] === '"'){ cur += '"'; i++; }
+      else if(ch === '"') inQ = false;
+      else cur += ch;
+    } else if(ch === '"') inQ = true;
+    else if(ch === ',') { row.push(cur.trim()); cur = ""; }
+    else if(ch === '\n'){ row.push(cur.trim()); rows.push(row); row = []; cur = ""; }
+    else if(ch !== '\r') cur += ch;
+  }
+  if(cur !== "" || row.length){ row.push(cur.trim()); rows.push(row); }
+  return rows;
+}
+
+const MES_TXT = {ene:1,jan:1,feb:2,mar:3,abr:4,apr:4,may:5,jun:6,jul:7,ago:8,aug:8,sep:9,set:9,oct:10,nov:11,dic:12,dec:12};
+
+// Convierte un encabezado de mes al índice 0..12 (Ene 2026 .. Ene 2027), o -1
+function idxMes(h){
+  const s = normTexto(h);
+  let y, m;
+  let r;
+  if((r = s.match(/^(\d{4})-(\d{1,2})/)))                       { y=+r[1]; m=+r[2]; }
+  else if((r = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/)))    {
+    // Los encabezados son día 1 del mes: el número distinto de 1 es el mes (sirve para d/m y m/d)
+    const a=+r[1], b=+r[2]; y=+r[3]; m = a===1 ? b : a;
+  }
+  else if((r = s.match(/^([a-z]{3})[a-z]*[\s.\-'/]*(\d{2,4})$/)) && MES_TXT[r[1]]) { m=MES_TXT[r[1]]; y=+r[2]; }
+  else if((r = s.match(/^(\d{5})(\.0+)?$/)))                    {          // serial de Excel
+    const d = new Date(Date.UTC(1899,11,30) + (+r[1])*864e5); y=d.getUTCFullYear(); m=d.getUTCMonth()+1;
+  }
+  else return -1;
+  if(y < 100) y += 2000;
+  const i = (y-2026)*12 + (m-1);
+  return i >= 0 && i < 13 ? i : -1;
 }
 
 function parseCsv(text){
-  const lines = text.trim().split("\n");
-  const rows = lines.slice(1);
-  return rows.map(line=>{
-    const cols = [];
-    let cur = "", inQ = false;
-    for(let i = 0; i < line.length; i++){
-      const ch = line[i];
-      if(ch === '"'){ inQ = !inQ; }
-      else if(ch === ',' && !inQ){ cols.push(cur.trim()); cur = ""; }
-      else { cur += ch; }
-    }
-    cols.push(cur.trim());
-    const pagos = Array.from({length:13},(_,i)=>parseNum(cols[4+i]||0));
-    return {
-      p: normParcela(cols[0]),
-      n: (cols[1]||"").trim(),
-      rifa: parseNum(cols[2]),
-      mant: parseNum(cols[3]),
-      pagos,
-    };
-  }).filter(r=>r.p && r.p !== "PARCELA");
+  const filas = splitCsv(text);
+  const avisos = [];
+  // El encabezado es la primera fila (de las 5 primeras) que contiene "PARCELA"
+  const hIdx = filas.slice(0,5).findIndex(f=>f.some(c=>normTexto(c).includes("parcela")));
+  if(hIdx < 0) throw new Error("La planilla no tiene la columna PARCELA");
+  const h = filas[hIdx].map(normTexto);
+  const col = (pred, def)=>{ const i = h.findIndex(pred); return i >= 0 ? i : def; };
+  const cP = col(c=>c.includes("parcela"), 0);
+  const cN = col(c=>c.startsWith("nombre"), 1);
+  const cR = col(c=>c.startsWith("rifa"), 2);
+  const cM = col(c=>c.startsWith("mantenc"), 3);
+  let cMes = Array(13).fill(-1);
+  filas[hIdx].forEach((c,i)=>{ const k = idxMes(c); if(k >= 0 && cMes[k] < 0) cMes[k] = i; });
+  if(cMes.filter(i=>i>=0).length < 12){
+    avisos.push("Encabezados de meses no reconocidos: se usan columnas E a Q.");
+    cMes = Array.from({length:13},(_,i)=>4+i);
+  }
+
+  const vistos = new Set();
+  const rows = [];
+  filas.slice(hIdx+1).forEach((c,k)=>{
+    const original = (c[cP]||"").trim();
+    if(!original && !(c[cN]||"").trim()) return;              // fila vacía
+    const p = normParcela(original);
+    const fila = hIdx + 2 + k;
+    if(!PARCELA_VALIDA.test(p)){ avisos.push(`Fila ${fila}: parcela inválida "${original}" — ignorada.`); return; }
+    if(vistos.has(p)){ avisos.push(`Fila ${fila}: parcela ${p} repetida — se usa la primera.`); return; }
+    vistos.add(p);
+    rows.push({
+      p,
+      n: (c[cN]||"").trim(),
+      rifa: parseNum(c[cR]),
+      mant: parseNum(c[cM]),
+      pagos: cMes.map(i=>parseNum(c[i])),
+    });
+  });
+  if(!rows.length) throw new Error("La planilla no trae parcelas");
+  return { rows, avisos };
+}
+
+const CACHE_KEY = "nipas_datos_v1";
+function leerCache(){
+  try { const c = JSON.parse(localStorage.getItem(CACHE_KEY)); return c && Array.isArray(c.rows) ? c : null; }
+  catch { return null; }
+}
+function guardarCache(rows){
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), rows })); } catch {}
+}
+
+function fetchConTimeout(url, ms = 12000){
+  const ctrl = new AbortController();
+  const t = setTimeout(()=>ctrl.abort(), ms);
+  return fetch(url, { cache: "no-store", signal: ctrl.signal }).finally(()=>clearTimeout(t));
+}
+
+async function cargarPlanilla(){
+  let ultimoError;
+  for(const url of SHEET_URLS){
+    try{
+      const r = await fetchConTimeout(url);
+      if(!r.ok) throw new Error("HTTP " + r.status);
+      const res = parseCsv(await r.text());
+      if(res.avisos.length) console.warn("[Planilla] Revisar:\n" + res.avisos.join("\n"));
+      return res;
+    }catch(e){ ultimoError = e; console.warn("[Planilla] Falló " + url.split("/").pop() + ": " + e.message); }
+  }
+  throw ultimoError;
+}
+
+function fmtFecha(ts){
+  return new Date(ts).toLocaleString("es-CL",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
 }
 
 function getEstado(pagos){
@@ -79,14 +193,22 @@ export default function App(){
   const [raw, setRaw]         = useState([]);
   const [cargando, setCargando]   = useState(true);
   const [errorCarga, setErrorCarga] = useState("");
+  const [actualizado, setActualizado] = useState(null);
 
   function cargarDatos(){
     setCargando(true);
     setErrorCarga("");
-    fetch(SHEET_URL)
-      .then(r=>{ if(!r.ok) throw new Error(); return r.text(); })
-      .then(text=>{ setRaw(parseCsv(text)); setCargando(false); })
-      .catch(()=>{ setErrorCarga("No se pudo cargar la planilla."); setCargando(false); });
+    cargarPlanilla()
+      .then(({rows})=>{
+        guardarCache(rows);
+        setRaw(rows); setActualizado({ ts: Date.now(), desdeCache: false });
+      })
+      .catch(()=>{
+        const c = leerCache();
+        if(c){ setRaw(c.rows); setActualizado({ ts: c.ts, desdeCache: true }); }
+        else setErrorCarga("No se pudo cargar la planilla.");
+      })
+      .finally(()=>setCargando(false));
   }
 
   useEffect(()=>{ cargarDatos(); },[]);
@@ -101,6 +223,7 @@ export default function App(){
     setError(""); setResultado(null);
     const q = normParcela(parcela);
     if(!q){ setError("Ingresa el número de tu parcela."); return; }
+    if(!PARCELA_VALIDA.test(q)){ setError("Escribe solo el número de la parcela, por ejemplo 45 o 76B."); return; }
     const f = raw.find(r=>r.p===q);
     if(!f){ setError("Parcela no encontrada. Verifica el número."); return; }
     setResultado(f);
@@ -229,13 +352,26 @@ export default function App(){
               border:`1px solid ${N.borde}`}}>
               📅 Estado basado en meses obligatorios vencidos<br/>
               <strong style={{color:N.verde}}>
-                Marzo — {MES_ACTIVO <= 12 ? MESES[MES_ACTIVO-1]+" 2026" : "Ene 2027"}
+                {MES_ACTIVO <= MES_OBL_DESDE
+                  ? "Aún no vence ningún mes obligatorio"
+                  : "Marzo — " + (MES_ACTIVO <= 12 ? MESES[MES_ACTIVO-1]+" 2026" : "Ene 2027")}
               </strong>
             </div>
 
-            <div style={{textAlign:"center",fontSize:11,color:N.verdeBorde}}>
-              🔄 Datos actualizados desde Google Sheets
-            </div>
+            {actualizado && (actualizado.desdeCache ? (
+              <div style={{textAlign:"center",fontSize:14,color:N.amarillo,fontWeight:700,
+                background:N.bgCard2,borderRadius:10,padding:"10px 14px",border:`1px solid ${N.amarillo}`}}>
+                ⚠️ Sin conexión con la planilla. Mostrando datos guardados del {fmtFecha(actualizado.ts)}.
+                <div style={{marginTop:8}}>
+                  <button onClick={cargarDatos} style={{padding:"8px 18px",background:N.verde,color:"#fff",
+                    border:"none",borderRadius:8,fontSize:14,fontWeight:700,cursor:"pointer"}}>Reintentar</button>
+                </div>
+              </div>
+            ) : (
+              <div style={{textAlign:"center",fontSize:11,color:N.verdeBorde}}>
+                🔄 Datos actualizados desde Google Sheets · {fmtFecha(actualizado.ts)}
+              </div>
+            ))}
           </div>
         )}
 
